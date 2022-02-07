@@ -1,9 +1,7 @@
 package com.tele2.calculator.domain;
 
 import com.tele2.calculator.enums.Operations;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -11,6 +9,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CalculatorOperation implements Serializable {
     private String id;
     private BigDecimal firstOperand;

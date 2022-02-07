@@ -4,7 +4,7 @@ import com.tele2.calculator.domain.CalculatorOperation;
 import com.tele2.calculator.domain.CalculatorOperationHistoryResponse;
 import com.tele2.calculator.domain.CalculatorOperationResponse;
 import com.tele2.calculator.enums.Operations;
-import com.tele2.calculator.service.CalculatorService;
+import com.tele2.calculator.service.CalculatorCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
@@ -23,18 +23,18 @@ public class CalculatorController {
     private final static String DIVIDE_BY_ZERO_ERR = "Can't divide by 0";
     private final static String HISTORY_NOT_AVAILABLE = "Calculation history not available!";
 
-    private final CalculatorService calculatorService;
+    private final CalculatorCacheService calculatorCacheService;
 
     @Autowired
-    public CalculatorController(CalculatorService calculatorService) {
-        this.calculatorService = calculatorService;
+    public CalculatorController(CalculatorCacheService calculatorCacheService) {
+        this.calculatorCacheService = calculatorCacheService;
     }
 
     @GetMapping("/add")
     public ResponseEntity<CalculatorOperationResponse> add(@RequestParam(required = false) String id,
                                                            @RequestParam BigDecimal augend,
                                                            @RequestParam BigDecimal addend) {
-        CalculatorOperation operation = calculatorService.add(id, augend, addend);
+        CalculatorOperation operation = calculatorCacheService.add(id, augend, addend);
         return ResponseEntity.ok(CalculatorOperationResponse.builder().operation(operation).build());
     }
 
@@ -42,7 +42,7 @@ public class CalculatorController {
     public ResponseEntity<CalculatorOperationResponse> subtract(@RequestParam(required = false) String id,
                                                                 @RequestParam BigDecimal minuent,
                                                                 @RequestParam BigDecimal subtrahend) {
-        CalculatorOperation operation = calculatorService.subtract(id, minuent, subtrahend);
+        CalculatorOperation operation = calculatorCacheService.subtract(id, minuent, subtrahend);
         return ResponseEntity.ok(buildSuccessResponse(operation));
     }
 
@@ -50,7 +50,7 @@ public class CalculatorController {
     public ResponseEntity<CalculatorOperationResponse> multiply(@RequestParam(required = false) String id,
                                                                 @RequestParam BigDecimal multiplier,
                                                                 @RequestParam BigDecimal multiplicand) {
-        CalculatorOperation operation = calculatorService.multiply(id, multiplier, multiplicand);
+        CalculatorOperation operation = calculatorCacheService.multiply(id, multiplier, multiplicand);
         return ResponseEntity.ok(buildSuccessResponse(operation));
     }
 
@@ -64,20 +64,20 @@ public class CalculatorController {
                     .operations(Operations.DIVIDE).build();
             return ResponseEntity.badRequest().body(buildFailureResponse(operation, DIVIDE_BY_ZERO_ERR));
         }
-        operation = calculatorService.divide(id, dividend, divisor);
+        operation = calculatorCacheService.divide(id, dividend, divisor);
         return ResponseEntity.ok(buildSuccessResponse(operation));
     }
 
     @GetMapping("/history")
     public ResponseEntity<CalculatorOperationHistoryResponse> history(@RequestParam(required = false) String id) {
-        List<CalculatorOperation> operations = calculatorService.history(id);
+        List<CalculatorOperation> operations = calculatorCacheService.history(id);
         CalculatorOperationHistoryResponse response;
+        String message = null;
         if (CollectionUtils.isEmpty(operations)) {
-            response = CalculatorOperationHistoryResponse.builder().message(HISTORY_NOT_AVAILABLE).build();
-        } else {
-            response = CalculatorOperationHistoryResponse.builder().operations(operations).build();
+            message = HISTORY_NOT_AVAILABLE;
         }
 
+        response = CalculatorOperationHistoryResponse.builder().operations(operations).message(message).build();
         return ResponseEntity.ok(response);
     }
 
